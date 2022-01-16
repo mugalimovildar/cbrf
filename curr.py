@@ -22,6 +22,31 @@ if ((not beginDateObject) or (not endDateObject)):
 if ((endDateObject - beginDateObject).days < 0):
     exit ('Ошибка. Дата конца не может быть раньше даты начала')
 
+usedCurrencies = [
+    "AUD",
+    "BYR",
+    "CAD",
+    "CHF",
+    "CNY",
+    "DKK",
+    "EUR",
+    "GBP",
+    "ISK",
+    "JPY",
+    "KZT",
+    "NOK",
+    "SEK",
+    "SGD",
+    "TRY",
+    "UAH",
+    "USD",
+    "XDR"
+]
+
+if (params['curr_1'] not in usedCurrencies or params['curr_2'] not in usedCurrencies):
+    print ('Ошибка, валюта не найдена. Возможные варианты:')
+    exit (', '.join(usedCurrencies))
+
 daysToGet = library.getDatesRange(beginDateObject,endDateObject)
 
 resultList = []
@@ -42,17 +67,28 @@ for day in daysToGet:
 
             dayInfo = json.load(jsonDayFile)
 
+    try:
 
+        priceBefore_1 = currPrice_1
+        priceBefore_2 = currPrice_2
+
+    except:
+
+        priceBefore_1 = float(dayInfo[params['curr_1']]["Value"]) / float(dayInfo[params['curr_1']]["Nominal"])
+        priceBefore_2 = float(dayInfo[params['curr_2']]["Value"]) / float(dayInfo[params['curr_2']]["Nominal"])
+
+    currPrice_1 = float(dayInfo[params['curr_1']]["Value"]) / float(dayInfo[params['curr_1']]["Nominal"])
+    currPrice_2 = float(dayInfo[params['curr_2']]["Value"]) / float(dayInfo[params['curr_2']]["Nominal"])
 
     resultList.append({
         'date':day.strftime("%d/%m/%Y"),
         params['curr_1']:{
-            'value':float(dayInfo[params['curr_1']]["Value"]) / float(dayInfo[params['curr_1']]["Nominal"]),
-            'delta':1
+            'value': currPrice_1,
+            'delta': currPrice_1 - priceBefore_1
         },
         params['curr_2']:{
-            'value':float(dayInfo[params['curr_2']]["Value"]) / float(dayInfo[params['curr_2']]["Nominal"]),
-            'delta':1
+            'value': currPrice_2,
+            'delta': currPrice_2 - priceBefore_2
         }
     })
 
