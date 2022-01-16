@@ -7,42 +7,36 @@ import requests
 # Параметр dateDelimiter устанавливает разделитель дня, месяца и года
 # Параметр canInFuture (bool) указывает, корректна ли дата, находящаяся в будущем относительно сегодняшнего дня
 
-def getDateFromUser(queryText,dateDelimiter='/',canInFuture=False):
+def getDateFromUser(date_text, dateDelimiter='/', canInFuture=False):
 
-    while True:
+    date_input = date_text.strip().split(dateDelimiter)
 
-        date_input = input(queryText).strip().split(dateDelimiter)
+    if (len(date_input) != 3):
+        return (False)
+    
+    if (not date_input[0].isnumeric() or not date_input[1].isnumeric() or not date_input[2].isnumeric()):
+        return (False)
 
-        # Проверка корректности формата введенной даты
+    try:
 
-        if (len(date_input) != 3):
-            print ('Формат введенной даты некорректен')
-            continue
-        
-        if (not date_input[0].isnumeric() or not date_input[1].isnumeric() or not date_input[2].isnumeric()):
-            print ('Формат введенной даты некорректен')
-            continue
+        date_object = datetime.datetime(int(date_input[2]),int(date_input[1]),int(date_input[0]))
 
-        try:
+    except:
 
-            date_object = datetime.datetime(int(date_input[2]),int(date_input[1]),int(date_input[0]))
+        return (False)
 
-        except:
+    # Проверка на дату в будущем
 
-            print ('Формат введенной даты некорректен')
-            continue
+    if (not canInFuture):
 
-        # Проверка на дату в будущем
+        today_date_object = datetime.datetime.today()
 
-        if (not canInFuture):
+        if ((today_date_object - date_object).days < 0) :
+            
+            return (False)
 
-            today_date_object = datetime.datetime.today()
+    return (date_object)
 
-            if ((today_date_object - date_object).days < 0) :
-                print ('Дата начала не может быть в будущем')
-                continue
-
-        return (date_object)
 
 def getDatesRange (start_date, end_date):
 
@@ -88,9 +82,9 @@ def getDayData (day):
 
         dayDataList[currency.getElementsByTagName('CharCode')[0].firstChild.nodeValue] = {
             'NumCode':currency.getElementsByTagName('NumCode')[0].firstChild.nodeValue,
-            'Nominal':currency.getElementsByTagName('Nominal')[0].firstChild.nodeValue,
+            'Nominal':currency.getElementsByTagName('Nominal')[0].firstChild.nodeValue.replace(',', '.'),
             'Name':currency.getElementsByTagName('Name')[0].firstChild.nodeValue,
-            'Value':currency.getElementsByTagName('Value')[0].firstChild.nodeValue
+            'Value':currency.getElementsByTagName('Value')[0].firstChild.nodeValue.replace(',', '.')
         }
 
     return (dayDataList)
